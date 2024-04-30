@@ -1,5 +1,9 @@
-# postal-address-ner
+# ruaddress-elements-classification
 
-Исследовательский проект о возможности применения машинного обучения для
-задачи извлечения именованных сущностей (NER) - регион, населенный пункт из строк с адресами РФ.
+Russian address elements token classification using neural network.
+
+Limitaions:
+
+- Research project for proof of concept
+- No production-like quality guaranteed.
 
