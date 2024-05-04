@@ -8,7 +8,7 @@
 \usepackage{hyperref}
 
 
-\title{Recognition of russian postal address elements using artificial neural networks}
+\title{Russian address elements classification using artificial neural networks}
 \author{Anton Reshetnikov}
 \date{May 2024}
 
@@ -17,22 +17,28 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-    This documents provides result of research for named entity recognition task applied to russian postal address parts.
-    A postal address can be written in various forms, with missed parts or typos.
-    The task is to recognize elements of address like postal index, region, place, street, recipient, etc using artificial neural networks.
+    This documents provides result of research of token classification task applied to russian address elements.
+    An address can be written in various forms, with missed words, typos, different order of words, etc.
+    The task is to recognize elements of address like region, area (district), city, territory, street.
     The source code available at
-     \url{https://github.com/qwazer/postal-address-ner}.
+     \url{https://github.com/qwazer/ruaddress-elements-classification}.
 \end{abstract}
 
 
 
 \section{Introduction}
-First of all, you will need to write the whole report in English, with a few exceptions mentioned below.
-This section is devoted to a problem motivation. You should answer the question of why the problem you were working on is important. Also, you should describe what is unique in your approach to this problem, what are the differences to other approaches.
-\subsection{Team}
-Please list your team members and describe their responsibilities. Example:
 
-\textbf{Valentin Malykh} prepared this document.
+Logistics companies have the task of checking and normalizing the address against the incoming string.
+For example, there is an address "Москва, Абрат, 1".
+It is necessary to select address-forming elements, check against the database,
+that such an address actually exists and return the status of the address and its normalized representation.
+
+Traditionally, IT systems that solve this problem use a rules-based approach (text tokenization, checks using a set of regular expressions).
+The task is to explore the possibilities of solving the same problem using neural networks.
+
+\subsection{Team}
+
+\textbf{Anton Reshetnikov} - researcher
 
 
 
@@ -40,10 +46,11 @@ Please list your team members and describe their responsibilities. Example:
 \label{sec:related}
 In this section, you will describe in details the existing approaches to the problem you work on. For each approach, you need to provide a reference.
 
-\cite{levenshtein1966binary} is a sample reference to the previous art. \cite{levenshtein1966dvoichnie} is a sample reference in Russian.
+\cite{levenshtein1966dvoichnie} is a sample reference to the previous art. \cite{levenshtein1966dvoichnie} is a sample reference in Russian.
 
 \section{Model Description}
-Here you need to write a detailed description of your approach. It is important to mention that this description should give more details than the descriptions from section \ref{sec:related}\footnote{This is an example of internal references and footnotes at the same time.}.
+Here you need to write a detailed description of your approach.
+It is important to mention that this description should give more details than the descriptions from section \ref{sec:related}\footnote{This is an example of internal references and footnotes at the same time.}.
 
 You will likely be providing a figure to better present your approach. A sample circle is presented on Fig.~\ref{fig:circle}.
 
@@ -51,12 +58,7 @@ The other possible contents of this section are formulae. They could be on a new
 $$S=\pi r^2,$$
 or they could be inline, e.g. if you want to describe the used variables, like $S$ is an area of a circle, while $r$ is its radius.
 
-\begin{figure}[!tbh]
-    \centering
-    \includegraphics[width=0.3\linewidth]{circle.png}
-    \caption{A sample circle.}
-    \label{fig:circle}
-\end{figure}
+
 
 \section{Dataset}
 In this section, you need to describe the dataset(s) you are working with.
