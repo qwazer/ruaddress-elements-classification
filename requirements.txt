@@ -3,4 +3,5 @@ datasets==2.19.0
 evaluate==0.4.2
 pandas==2.2.2
 notebook
+seqeval
 transformers==4.40.1
