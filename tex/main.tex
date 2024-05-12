@@ -27,8 +27,9 @@
 
 \section{Introduction}
 
+
 Logistics companies have the task of checking and normalizing the address against the incoming string.
-For example, there is an address "Москва, Абрат, 1".
+For example, there is an input string with the address ``Москва, Абрат, 1'' (in Russian).
 It is necessary to select address-forming elements, check against the database,
 that such an address actually exists and return the status of the address and its normalized representation.
 
@@ -43,19 +44,17 @@ The task is to explore the possibilities of solving the same problem using moder
 
 \section{Related Work}
 \label{sec:related}
-% TODO
-In this section, you will describe in details the existing approaches to the problem you work on. For each approach, you need to provide a reference.
-
-\cite{makarov2020algo} overview of traditional algorithms used for address elements recognition.
-Another sample is~\cite{habr2020gar}
+\cite{makarov2020algo} provides overview of traditional algorithms used for address elements recognition.
+The particular solution for address element recognition described in ~\cite{habr2020gar}
+%todo overview of international attempts
 
 \section{Model Description}
 
 The most modern deep learning models based on Transformer architecture described in the ``Attention Is All You Need'' article~\cite{vaswani2023attention}.
 There are several models adapted for russian language exists.
-For example, see this overview article:~\cite{zmitrovich2024family}.
+For detail see this overview article:~\cite{zmitrovich2024family}.
 
-For purpose of current research ``cointegrated/rubert-tiny2'' selected.
+For the purpose of current research \href{https://huggingface.co/cointegrated/rubert-tiny2}{cointegrated/rubert-tiny2} model selected.
 Reasons of such choice are:
 \begin{enumerate}
     \item It based on Transformer architecture;
@@ -65,35 +64,91 @@ Reasons of such choice are:
 
 
 \section{Dataset}
-In this section, you need to describe the dataset(s) you are working with.
-An example dataset we will use is WikiText-2. Please mention a paper where it was presented, e.g. WikiText-2 was presented in~\cite{merity2017pointer}. Please provide guidance on how to obtain the dataset\footnote{The one way to do it is to include a link to the website, where it could be downloaded from. Like~\href{https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/}{this}.}. It is important to mention that the dataset you use must be available for the research purposes. So please make sure about that.
 
-Your description will likely be including a table. On the Tab.~\ref{tab:statistics} you can see the statistics for the mentioned dataset. It is important to notice that there is a split of the dataset and this split is covered by the description.
+\subsection{Datasource}
+The dataset based on freely available ``State address register'' distributed at \url{https://fias.nalog.ru/} by Federal Taxation Service of the Russian Federation.
 
-\begin{table}[tbh!]
+Subset of ``State address register'' related to address-forming elements used to build the dataset.
+Only address elements related to Administrative division (Административно-территориальное деление) was selected.
+
+\subsection{Token classes}
+
+Dictionary ``Element type'' used as token classes for token classification task.
+Values of dictionary are:
+\begin{enumerate}
+    \item REGION
+    \item REGION\_TYPE
+    \item AREA
+    \item AREA\_TYPE
+    \item TERRITORY
+    \item TERRITORY\_TYPE
+    \item CITY
+    \item CITY\_TYPE
+    \item STREET
+    \item STREET\_TYPE
+\end{enumerate}
+
+\subsection{Mapping table}
+Address elements levels of ``State address register'' mapped to custom dictionary ``Element type'' with next mapping table:
+
+
 \begin{center}
-\begin{tabular}[t]{|l|ccc|}
-\hline
-%\cline{2-4}
- & Train & Valid & Test \\
-\hline
-Articles & 600 & 60 & 60  \\
-Tokens& 2,088,628 & 217,646 & 245,569 \\
-Vocabulary size & \multicolumn{3}{c|}{33,278} \\
-Out of Vocab rate &  \multicolumn{3}{c|}{2.6\%}  \\
-\hline
-\end{tabular}
-\caption{Statistics of the WikiText-2. The out of vocabulary (OoV) rate notes what percentage of tokens have been replaced by an $\langle unk \rangle$ token. The token count includes newlines which add to the structure of the dataset.}
-\label{tab:statistics}
+    \begin{tabular}{| l | l | l | }
+        \hline
+        State address register level (in Russian) & Element type & Example  \\
+        \hline
+        Субъект & REGION & Омская область  \\
+        Административный район & AREA & Любинский р-н   \\
+        Город & CITY &    \\
+        Населенный пункт & CITY &  поселок Камышловский \\
+        Элемент планировочной структуры & TERRITORY & Территория СНТ Сибзаводовец-2  \\
+        Элемент улично-дорожной сети & STREET & 7-я аллея \\
+        Земельный участок & not used & \\
+        Здание (сооружение) & not used &  \\
+        Помещение & not used & \\
+        Помещения в пределах помещения & not used  &\\
+        Машино-место & not used  &\\
+        \hline
+    \end{tabular}
 \end{center}
-\end{table}
 
-If you were collecting the dataset on your own please describe the collection procedure, like criteria were used to filter the documents, the pre-processing steps, etc. It is preferable that you release your dataset for the public, but you are not obliged to do this. Please make sure that you have legal rights to collect and distribute the data you were working with. We recommend you to look at C4Corpus and how it is licensed to make your corpora. C4Corpus is described in~\cite{habernal2016c4corpus}.
+\subsection{Dataset structure}
+
+The idea is to generate own dataset called ``Ruaddress'' from ``State address register'' datasource.
+The ``Ruaddress'' dataset has 2 columns, described in the next table:
+
+\begin{center}
+    \begin{tabular}{| l | p{6cm} | l | }
+        \hline
+        Column name & tokens & classes  \\
+        Description & list of token words & list of class codes  \\
+        Example & [Вологодская, Область, Грязовецкий, Район, Вохтога, Рабочий, поселок] &  [1, 2, 3, 4, 7, 8, 8] \\
+        \hline
+    \end{tabular}
+\end{center}
+
+
+
+\subsection{Augmenation}
+
+A place address can be presented in a various forms.
+To generate address form from address elements the augmentation procedure is used.
+The procedure receive address-forming elements for a place, then apply series of transformation and output 2 lists: tokens and related token classes.
+
+\subsubsection{Word level augmentation}
+\subsubsection{Char level augmentation}
+
+\cite{martynov2023augmentation}
+
+%TODO describe dataset Augmenation
+
+\subsection{Final dataset}
+%TODO describe dataset metrics
 
 \section{Experiments}
-This section should include several subsections.
+
 \subsection{Metrics}
-First of all, you should describe the metric(s) you were using to evaluate your approach. Most likely a metric description will include a formula.
+Standard metrics for classification task are used: Precision, Recall, F1.
 
 \subsection{Experiment Setup}
 Secondly, you need to describe the design of your experiment, e.g. how many runs there were, how the data split was done. The important details of your model, like hyper-parameters used in the experiments, and so on.
