@@ -33,7 +33,7 @@ For example, there is an input string with the address ``Москва, Абра�
 It is necessary to select address-forming elements, check against the database,
 that such an address actually exists and return the status of the address and its normalized representation.
 
-Traditionally, IT systems that solve this problem using a rules-based approach (text tokenization, checks using a set of regular expressions).
+Traditionally, IT systems that solve this problem using a rules-based approach (word level tokenization, token classification by regular expressions).
 The task is to explore the possibilities of solving the same problem using modern deep learning models.
 
 \subsection{Team}
@@ -68,8 +68,7 @@ Reasons of such choice are:
 \subsection{Datasource}
 The dataset based on freely available ``State address register'' distributed at \url{https://fias.nalog.ru/} by Federal Taxation Service of the Russian Federation.
 
-Subset of ``State address register'' related to address-forming elements used to build the dataset.
-Only address elements related to Administrative division (Административно-территориальное деление) was selected.
+Only address elements related to Administrative division (Административно-территориальное деление) was selected from the ``State address register''.
 
 \subsection{Token classes}
 
@@ -86,6 +85,7 @@ Values of dictionary are:
     \item CITY\_TYPE
     \item STREET
     \item STREET\_TYPE
+    \item DELIMITER
 \end{enumerate}
 
 \subsection{Mapping table}
@@ -112,6 +112,8 @@ Address elements levels of ``State address register'' mapped to custom dictionar
     \end{tabular}
 \end{center}
 
+In case of REGION and CITY has the same value (like for ``город Москва'', ``город Санкт-Петербург'', ``город Севастополь'', ``город Байконур'') CITY tokens are omitted.
+
 \subsection{Dataset structure}
 
 The idea is to generate own dataset called ``Ruaddress'' from ``State address register'' datasource.
@@ -122,7 +124,7 @@ The ``Ruaddress'' dataset has 2 columns, described in the next table:
         \hline
         Column name & tokens & classes  \\
         Description & list of token words & list of class codes  \\
-        Example & [Вологодская, Область, Грязовецкий, Район, Вохтога, Рабочий, поселок] &  [1, 2, 3, 4, 7, 8, 8] \\
+        Example & [Вологодская, Область,,, Грязовецкий, Район, Вохтога, Рабочий, поселок] &  [1, 2, 11, 3, 4, 7, 8, 8] \\
         \hline
     \end{tabular}
 \end{center}
@@ -135,51 +137,138 @@ A place address can be presented in a various forms.
 To generate address form from address elements the augmentation procedure is used.
 The procedure receive address-forming elements for a place, then apply series of transformation and output 2 lists: tokens and related token classes.
 
-\subsubsection{Word level augmentation}
+\subsubsection{Formats of address element}
+
+Controlled by next options:
+
+\begin{center}
+    \begin{tabular}{| l | l | l |  l | }
+        \hline
+        Option & Probability & Example for True value 1 & Example for False value \\
+        \hline
+        typeFirst & 0.75 & поселок Мирный & Завьяловский район  \\
+        commaSeparator & 0.75 & поселок Мирный\textbf{,} & Завьяловский район  \\
+        shortType & 0.5 & п. Мирный\textbf{,} & Завьяловский р-н  \\
+        \hline
+    \end{tabular}
+\end{center}
+
+
+
 \subsubsection{Char level augmentation}
 
-\cite{martynov2023augmentation}
+For adding some noise and corruptions to the words the \href{https://github.com/ai-forever/augmentex}{augmentex} tool used.
+The augmentex tool described in next paper \cite{martynov2023augmentation}.
+It used with next config:
 
-%TODO describe dataset Augmenation
+\begin{verbatim}
+char_aug = CharAug(
+    unit_prob=0.05, # Percentage of the phrase to which augmentations will be applied
+    min_aug=0, # Minimum number of augmentations
+    max_aug=3, # Maximum number of augmentations
+    mult_num=3, # Maximum number of repetitions of characters
+    random_seed=42,
+    lang="rus", # supports: "rus", "eng"
+    platform="pc", # supports: "pc", "mobile"
+)
 
-\subsection{Final dataset}
-%TODO describe dataset metrics
+\end{verbatim}
+
+\subsubsection{Word shortening}
+
+For word shortening 2 options are used.
+
+
+\begin{center}
+    \begin{tabular}{| l | l | l |  l | }
+        \hline
+        Option & Probability & Example for Красноярский & \\
+        \hline
+        hyphen substition & 0.15 & Красн-кий  \\
+        dot truncation & 0.15 & Красн.  \\
+        \hline
+    \end{tabular}
+\end{center}
+
+
+\subsection{``Ruaddress'' dataset}
+
+The ``Ruaddress'' dataset consist of 1,5 millions augmented addresses.
+The dataset was split on train, test, validation parts in 4:1:1 (0.66:0.16:0.16) proportion accordingly.
+
 
 \section{Experiments}
+
+The model was trained using Jupiter notebook  from the ~\cite{nlpcourse2022} article.
+The original Jupiter notebook from Hugging face NPL course was adapted for the ``Ruaddress'' dataset.
+
+
 
 \subsection{Metrics}
 Standard metrics for classification task are used: Precision, Recall, F1.
 
 \subsection{Experiment Setup}
-Secondly, you need to describe the design of your experiment, e.g. how many runs there were, how the data split was done. The important details of your model, like hyper-parameters used in the experiments, and so on.
 
-\subsection{Baselines}
-Another important feature is that you could provide here the description of some simple approaches for your problem, like logistic regression over TF-IDF embedding for text classification. The baselines are needed is there is no previous art on the problem you are presenting.
+The experiments shown that the model can be effectively trained in 1 epoch.
+The second epoch and the third epoch increase metrics in less than 0,005 \%.
+
+The whole list of parameters are shown in the next code snippet
+
+\begin{verbatim}
+args = TrainingArguments(
+    "bert-finetuned-ner",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=2e-5,
+    num_train_epochs=1,
+    weight_decay=0.01
+)
+\end{verbatim}
+
 
 \section{Results}
-In this section, you need to list and describe the achieved results. It is crucial to have the results of the experiments for the other approaches. This is needed to be able to compare your results with some competitors. Most preferably, you should provide some references with results on the same problem.
 
-Almost inevitably the results are presented as a table, but it is also possible to have a graph, i.e. a figure.
+The trained model solve address token classification task.
 
-You need also to provide an interpretation of the presented results, to describe some features. E.g. your approach shows higher results on the short texts or by one metric instead of another.
+Example
 
-Also in this section, you could provide some results for your model inference. The samples could be found in Tab.~\ref{tab:output}.
+Input:
+\begin{verbatim}
+Ставропольский край г Лермонтов территория
+садоводческого некоммерческого товарищества
+имени И.В. Мичурина, ул массив 3 линия 3
+\end{verbatim}
+Output:
+\begin{verbatim}
+    REGION - Ставропольский
+    REGION_TYPE - край
+    CITY_TYPE - г
+    CITY - Лермонтов
+    TERRITORY_TYPE - территория
+    TERRITORY - садоводческого некоммерческого товарищества имени И. В. Мичурина
+    DELIMITER - ,
+    STREET_TYPE - ул
+    STREET - массив 3 линия 3
+\end{verbatim}
 
-\begin{table}[!tbh]
-    \centering
-    \begin{tabular}{|c|}
-\hline
-Это пример вывода вашей модели на русском.\\
-This is a sample output of your model in English.
-\\
-\hline
-    \end{tabular}
-    \caption{Output samples.}
-    \label{tab:output}
-\end{table}
+The comparisons with other models was not performed in scope of the current work.
+
 
 \section{Conclusion}
-In this section, you need to describe all the work in short: what you have done and what has been achieved. E.g. you have collected a dataset, made a markup for it and developed a model showing the best results compared to other models.
+
+In scope of the current work the ``Ruaddress'' dataset based on ``State address register'' was build.
+It was augmented using different techniques.
+The model \href{https://huggingface.co/cointegrated/rubert-tiny2}{cointegrated/rubert-tiny2}
+was fine-tined for the token classification task applied to russian place addresses.
+
+\subsection{Futher steps}
+\begin{enumerate}
+    \item Add more tokens for buildings, steads, flats, possible inclusion of person or organization names, etc.
+    \item Build the model bases on Recurrent networks and compare metrics and performance.
+    \item Try to build multi-classification model, when a word can have multiple tokens.
+\end{enumerate}
+
+
 
 \bibliographystyle{apalike}
 \bibliography{lit}
