@@ -1,9 +1,12 @@
 # ruaddress-elements-classification
 
-Russian address elements token classification using neural network.
+Russian address elements classification using
+artificial neural networks.
 
-Limitaions:
+See [article.pdf](article.pdf)
 
-- Research project for proof of concept
+Limitations:
+
+- Research project for proof of concept.
 - No production-like quality guaranteed.
 
