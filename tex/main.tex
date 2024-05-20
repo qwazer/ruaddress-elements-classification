@@ -251,6 +251,16 @@ Output:
     STREET - массив 3 линия 3
 \end{verbatim}
 
+The model published to huggingface at \href{https://huggingface.co/qwazer/rubert-address-elements}{qwazer/rubert-address-elements}.
+The example of Inference API output show on Fig.~\ref{fig:inference-example}
+
+\begin{figure}[!tbh]
+    \centering
+    \includegraphics[width=1\linewidth]{inference-example-02}
+    \caption{Inference example}
+    \label{fig:inference-example}
+\end{figure}
+
 The comparisons with other models was not performed in scope of the current work.
 
 
@@ -260,10 +270,13 @@ In scope of the current work the ``Ruaddress'' dataset based on ``State address 
 It was augmented using different techniques.
 The model \href{https://huggingface.co/cointegrated/rubert-tiny2}{cointegrated/rubert-tiny2}
 was fine-tined for the token classification task applied to russian place addresses.
+The resulting model was published to huggingface at \href{https://huggingface.co/qwazer/rubert-address-elements}{qwazer/rubert-address-elements}.
 
-\subsection{Futher steps}
+\subsection{Futher steps and ideas to improve the model}
 \begin{enumerate}
     \item Add more tokens for buildings, steads, flats, possible inclusion of person or organization names, etc.
+    \item More word-level augmentations like word drop, swap, etc
+    \item Support for translit
     \item Build the model bases on Recurrent networks and compare metrics and performance.
     \item Try to build multi-classification model, when a word can have multiple tokens.
 \end{enumerate}
